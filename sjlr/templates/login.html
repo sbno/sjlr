@@ -18,13 +18,14 @@
       <div class="container ">
         <div class="row">
             <div class="con_border container">
+                <h2>{{params.msg}}</h2>
                 <form class="form-signin" action="/login" method="post">
                 <h2 class="form-signin-heading">登录账号</h2>
                 <label for="inputEmail" class="sr-only">用户名</label>
-                账号:<input type="text" id="inputEmail" class="form-control" placeholder="请输入账号" required autofocus name="uaccount" value="{{params.account}}">
+                账号<input type="text" id="inputEmail" class="form-control" placeholder="请输入用户名" required autofocus name="uaccount" value="{{params.uaccount}}">
                 <span>{{params.err}}</span>
                 <label for="inputPassword" class="sr-only">密码</label>
-                密码:<input type="password" id="inputPassword" class="form-control" placeholder="请输入6~20位密码" required name="upassword">
+                密码<input type="password" id="inputPassword" class="form-control" placeholder="请输入６～１０位密码" required name="upassword">
                 <div class="checkbox">
                   <label>
                     <input type="checkbox" value="remember-me" name="isSaved">
@@ -33,26 +34,7 @@
                 </div>
                 <button class="btn btn-lg btn-primary btn-block" type="submit">登录</button>
               </form>
-                <div class="mbl container">
-                    <a class="link-primary" href="">找回密码</a>
-                    <span class="color-gray mhs">|</span>
-                    <span class="color-gray">还没有注册帐号？</span>
-                    <a class="link-primary" href="/register">立即注册</a>
-                </div>
-                <div class="line">
-                  <div class="other_oauth">
-                    使用第三方账号直接登录
-                  </div>
-                </div>
-                <div class="social-login">
-                  <span>
-                      <a href="/login/bind/weixinweb?_target_path=/path/front&amp;inviteCode=" class="social-icon social-weixin">
-                    </a>
-                      <a href="/login/bind/qq?_target_path=/path/front&amp;inviteCode=" class="social-icon social-qq">
-                      </a>
-                  </span>
-                </div>
-              </div>
+                <a href="/register">注册</a>
             </div>
         </div>
       </div>
