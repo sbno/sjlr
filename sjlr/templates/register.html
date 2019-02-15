@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <form action="/register" enctype="multipart/form-data" method="post" >
+        <p>
+            账号：<input type="text" name="uaccount">
+        </p>
+        <p>
+            密码：<input type="password" name="password1" placeholder="请输入６～１０位密码">
+        </p>
+        <p>
+            密码：<input type="password" name="password2" placeholder="请再次输入密码">
+        </p>
+        <p>
+            昵称：<input type="text" name="uname">
+        </p>
+        <p>
+            性别：
+            <input type="radio" name="usex" value="male" checked="checked" id="male">
+            <label for="male">男</label>
+            <input type="radio" name="usex" value="female" id="female">
+            <label for="female">女</label>
+        </p>
+        <p>
+            年龄：<input type="text" name="uage" placeholder="请输入出生年月">
+        </p>
+        <p>
+            邮箱：<input type="email" name="uemail">
+        </p>
+        <p>
+            电话：<input type="text" name="uphone">
+        </p>
+        <input type="file" name="file" style="margin-top:20px;"/>
+        <p>
+            <input type="submit" value="注册">
+        </p>
+    </form>
+</body>
+</html>
+
