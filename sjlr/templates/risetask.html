@@ -25,13 +25,13 @@
 </head>
 <body>
     {% for message in get_flashed_messages() %}
-    <!--<a class="alert"  href="{{url_for('hello_world')}}">{{ message }}</a>-->
+    <a class="alert"  href="{{url_for('hello_world')}}">{{ message }}</a>
     {% endfor %}
-    <form action="/risetask" enctype="multipart/form-data" method="post">
-        <input type="radio" name="tip" value="0" checked>实物交易
-        <input type="radio" name="tip" value="1">跑腿代购
-        <input type="radio" name="tip" value="2">虚拟任务
-        <input type="radio" name="tip" value="3">其他类型
+    <form method='POST'>
+        <input type="radio" name="tip" value="实物交易" checked>实物交易
+        <input type="radio" name="tip" value="跑腿代购">跑腿代购
+        <input type="radio" name="tip" value="虚拟任务">虚拟任务
+        <input type="radio" name="tip" value="其他类型">其他类型
 
         <p>标题</p>
         <input type='text' name='title'>
@@ -39,6 +39,11 @@
         <textarea name="text"></textarea>
         <p>赏金</p>
         <input type='text' name='salary'>
+
+        <p>id</p>
+        <input type='text' name='uid'>
+        <p>发布时间</p>
+        <input type='text' name='pmtime'>
 
         <p>任务最迟开始时间</p>
         <input type='text' name='smtime'>

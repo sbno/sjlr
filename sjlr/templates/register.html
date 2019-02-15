@@ -1,44 +1,165 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-    <form action="/register" enctype="multipart/form-data" method="post" >
-        <p>
-            账号：<input type="text" name="uaccount">
-        </p>
-        <p>
-            密码：<input type="password" name="password1" placeholder="请输入６～１０位密码">
-        </p>
-        <p>
-            密码：<input type="password" name="password2" placeholder="请再次输入密码">
-        </p>
-        <p>
-            昵称：<input type="text" name="uname">
-        </p>
-        <p>
-            性别：
-            <input type="radio" name="usex" value="male" checked="checked" id="male">
-            <label for="male">男</label>
-            <input type="radio" name="usex" value="female" id="female">
-            <label for="female">女</label>
-        </p>
-        <p>
-            年龄：<input type="text" name="uage" placeholder="请输入出生年月">
-        </p>
-        <p>
-            邮箱：<input type="email" name="uemail">
-        </p>
-        <p>
-            电话：<input type="text" name="uphone">
-        </p>
-        <input type="file" name="file" style="margin-top:20px;"/>
-        <p>
-            <input type="submit" value="注册">
-        </p>
-    </form>
-</body>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>注册</title>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/login_reglogins.css" rel="stylesheet" type="text/css">
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <!--[if lt IE 9]>
+      <script src="/static/js/html5shiv.min.js"></script>
+      <script src="/static/js/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body style="background: url(../static/img/b.jpg);">
+      <div class="container ">
+        <div class="row">
+            <div class="zhuce_border container">
+                <form class="form-signin" action="/register" method="post">
+                <h2 class="form-signin-heading">注册账号</h2>
+                <p>
+                    <span>账号：<label style="color: red;">*</label><font id="textMSG"></font></span>
+                    <input type="text" name="uaccount" class="form-control" maxlength="20" required onblur="checkText(this.value)" placeholder="请输入4~20个由字母,数字,下划线组成的字符">
+                </p>
+                <p>
+                    <span>密码：<label style="color: red;">*</label><font id="passwordMSG"></font></span>
+                    <input type="password" name="password1" id="password" maxlength="20" placeholder="请输入6~20位密码" required onblur="checkPwd(this.value)" class="form-control">
+                </p>
+                <p>
+                    <span>确认密码：<label style="color: red;">*</label><font id="mm2MSG"></font></span>
+                    <input type="password" name="password2" maxlength="20" placeholder="请再次输入密码" required onblur="checkPwd2(this.value)" class="form-control">
+                </p>
+                <p>
+                    <span>邮箱：<label style="color: red;">*</label><font id="emailMSG"></font></span>
+                    <input type="email" name="uemail" maxlength="40" required onblur="checkEmail(this.value)" class="form-control">
+                </p>
+                <p>
+                    <span>电话：<label style="color: red;">*</label><font id="uphoneMSG"></font></span>
+                    <input type="text" name="uphone" maxlength="11" required onblur="checkUphone(this.value)" class="form-control">
+                </p>
+                <p>
+                    <span>昵称：<label style="color: red;">*</label><font id="unameMSG"></font></span>
+                    <input type="text" name="uname" required maxlength="20" onblur="checkUname(this.value)" class="form-control">
+                </p>
+                <p>
+                    <span>生日：<font id="uageMSG"></font></span>
+                    <input type="text" name="uage" placeholder="请输入出生年月日" onblur="checkUage(this.value)" class="form-control">
+                </p>
+                <p>
+                    <span>性别：</span>
+                    <input type="radio" name="usex" value="male" checked="checked" id="male" class="rad">
+                    <label for="male">男</label>
+                    <input type="radio" name="usex" value="female" id="female" class="rad">
+                    <label for="female">女</label>
+                </p>
+                <div class="file">
+                    <span>上传图像：</span>
+                    <input type="file" name="file"/>
+                </div>
+                <button class="btn btn-lg btn-primary btn-block" type="submit">注册</button>
+              </form>
+                <div class="mbl container">
+                    <span class="color-gray">已有帐号?</span>
+                    <a class="link-primary" href="/login">立即登录</a>
+                </div>
+                <div class="line">
+                  <div class="other_oauth">
+                    使用第三方账号直接登录
+                  </div>
+                </div>
+                <div class="social-login">
+                  <span>
+                      <a href="/login/bind/weixinweb?_target_path=/path/front&amp;inviteCode=" class="social-icon social-weixin">
+                    </a>
+                      <a href="/login/bind/qq?_target_path=/path/front&amp;inviteCode=" class="social-icon social-qq">
+                      </a>
+                  </span>
+                </div>
+            </div>
+        </div>
+      </div>
+      <script type="text/javascript">
+          /*验证账号*/
+          function checkText(text) {
+              var textMSG = document.getElementById("textMSG");
+              var reg = /[a-zA-Z0-9]{4,20}/;
+              var flag = reg.test(text);
+              if (!flag){
+                 textMSG.innerHTML = "<font color='red'>账号格式有误!</font>";
+             }else{
+                 textMSG.innerHTML = "<font color='green'><b>√</b></font>";
+             }
+          }
+          /*验证密码*/
+          function checkPwd(password) {
+             /*获取提示框*/
+             var passwordMSG = document.getElementById("passwordMSG");
+             /*定义正则表达式*/
+             var reg = /\w{6,20}/;
+             var flag = reg.test(password);
+             console.log(flag);
+             if (!flag){
+                 passwordMSG.innerHTML = "<font color='red'>密码格式有误!</font>";
+             }else{
+                 passwordMSG.innerHTML = "<font color='green'><b>√</b></font>";
+             }
+          }
+          /*验证确认密码*/
+          function checkPwd2(pwd2) {
+              var mm2MSG = document.getElementById("mm2MSG");//获取提示框
+              var pwd1 = document.getElementById("password").value;//获取第一个框的输入密码
+              //进行对比
+              if (pwd1 != pwd2){
+                  mm2MSG.innerHTML = "<font color='red'>两次输入的密码不一致!</font>";
+              }else{
+                  mm2MSG.innerHTML = "<font color='green'><b>√</b></font>";
+              }
+          }
+          /*验证邮箱*/
+          function checkEmail(email) {
+              var emailMSG = document.getElementById("emailMSG");
+              var reg = /\w+\W\w+\.com|\w+\W\w+\.cn/;
+              var flag = reg.test(email);
+              if (!flag){
+                 emailMSG.innerHTML = "<font color='red'>邮箱格式有误!</font>";
+             }else{
+                 emailMSG.innerHTML = "<font color='green'><b>√</b></font>";
+             }
+          }
+          /*验证电话*/
+          function checkUphone(uphone) {
+              var uphoneMSG = document.getElementById("uphoneMSG");
+              var reg = /[0-9]{11}/;
+              var flag = reg.test(uphone);
+              if (!flag){
+                 uphoneMSG.innerHTML = "<font color='red'>电话格式有误!</font>";
+             }else{
+                 uphoneMSG.innerHTML = "<font color='green'><b>√</b></font>";
+             }
+          }
+          /*验证昵称*/
+          function checkUname(uname) {
+              var unameMSG = document.getElementById("unameMSG");
+              if (!uname ){
+                 unameMSG.innerHTML = "<font color='red'>昵称格式有误!</font>";
+             }else{
+                 unameMSG.innerHTML = "<font color='green'><b>√</b></font>";
+             }
+          }
+          /*验证生日*/
+          function checkUage(uage) {
+              var uageMSG = document.getElementById("uageMSG");
+              var reg = /[0-9]{0,8}/;
+              var flag = reg.test(uage);
+              if (!flag){
+                 uageMSG.innerHTML = "<font color='red'>生日格式有误!</font>";
+             }else{
+                 uageMSG.innerHTML = "<font color='green'><b>√</b></font>";
+             }
+          }
+      </script>
+  </body>
 </html>
-
