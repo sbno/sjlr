@@ -7,12 +7,13 @@ import hashlib
 import datetime
 pymysql.install_as_MySQLdb()
 
+
 app=Flask(__name__)
 app.config['SECRET_KEY'] = '123456'# flash密匙
 app.config['SQLALCHEMY_DATABASE_URI']="mysql://root:123456@localhost:3306/app"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
 app.config['DEBUG']=True
-# app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN']=True
+app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN']=True
 db=SQLAlchemy(app)
 
 #创建Manager对象并指定要管理的app
@@ -31,7 +32,7 @@ manager.add_command('db',MigrateCommand)
 @app.route("/register",methods=["GET","POST"])
 def register():
     if request.method=="GET":
-        return render_template("register.html",params={})
+        return render_template("register.html")
     else:
         # ------------
         # 账号  密码　昵称　性别　出生年月　email  电话　地址　头像　
@@ -43,30 +44,28 @@ def register():
         age=request.form.get("uage")
         email=request.form.get("uemail")
         phone=request.form.get("uphone")
-        status='1'
-        ip = request.remote_addr
-
         try:
             f = request.files['file']
             if not (f and allowed_file(f.filename)):
                 return jsonify({"error": 1001, "msg": "请检查上传的图片类型，仅限于png、PNG、jpg、JPG、bmp"})
             # aa=datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')  # 时间节点
             bb=f.filename.split('.')[-1]
-            imgurl = 'static/images/' + account + '.' +bb
+            imgurl = 'static/img/' + account + '.' +bb
             f.save(imgurl)
         except:
-            imgurl = 'static/images/0.jpg'
+            imgurl = 'static/img/0.jpg'
+
 
         password=password.encode()
         pwd_temp=hashlib.sha1(password)
         password=pwd_temp.hexdigest()
-        user = Users(account,password,name,sex,age,email,phone,imgurl,status,ip)
+        user = Users(account,password,name,sex,age,email,phone,imgurl)
         db.session.add(user)   #session 事物会话　记录对象任务
         db.session.commit()    #数据提交
 
         resp = make_response('')
         resp.set_cookie('account',account,-100) #cookie保持到浏览器关闭
-        return render_template('login.html',params={account,imgurl})
+        return render_template('login.html',params={account})
 
 class Users(db.Model):
     __tablename__ = 'users'  #指明表名
@@ -74,14 +73,12 @@ class Users(db.Model):
     password= db.Column(db.String(40),nullable=False)      #定义字段
     name= db.Column(db.String(20),nullable=False)
     sex=db.Column(db.String(5),nullable=False)
-    age= db.Column(db.String(10))
+    age= db.Column(db.String(20))
     email= db.Column(db.String(40),nullable=False)
-    phone= db.Column(db.Integer,nullable=False)
+    phone= db.Column(db.String(20),nullable=False)
     imgurl=db.Column(db.String(50),nullable=False)
-    status=db.Column(db.String(1),nullable=False)
-    ip = db.Column(db.String(30),nullable=True)
 
-    def __init__(self,account,password,name,sex,age,email,phone,imgurl,status,ip):
+    def __init__(self,account,password,name,sex,age,email,phone,imgurl):
         self.account=account
         self.password=password
         self.name=name
@@ -90,10 +87,8 @@ class Users(db.Model):
         self.email=email
         self.phone=phone
         self.imgurl=imgurl
-        self.status=status
-        self.ip=ip
 
-# 用户登录申请
+# 登录申请
 @app.route("/login",methods=["GET","POST"])
 def login():
     if request.method=="GET":
@@ -107,10 +102,9 @@ def login():
                 user = Users.query.filter_by(account=account).first()
                 if user.account == account:
                     session['account']=account
-                    upStuatus(account)   #用户上线
                     return redirect(url)
                 else:
-                    resp = make_response(render_template('/login.html',params={}))
+                    resp = make_response(render_template('login.html',params={}))
                     resp.delete_cookie('account')
                     return resp
             else:
@@ -121,19 +115,17 @@ def login():
         upassword=upassword.encode()
         pwd_temp = hashlib.sha1(upassword)
         upassword = pwd_temp.hexdigest()
-        ip = request.remote_addr
+        print(uaccount,upassword)
         user=Users.query.filter_by(account=uaccount).first()
+        print(user)
         try:
             if user.password==upassword:
-                user.ip=ip
-                db.session.add(user)
-                db.session.commit()
-                upStuatus(uaccount)
+
                 session['account']= uaccount
                 try:
                     url = session['url']
                 except:
-                    url = '/'
+                    url='/'
                 resp = redirect(url)
                 if 'isSaved' in request.form:
                     resp.set_cookie('account',uaccount,60*60*24*365)
@@ -145,90 +137,62 @@ def login():
             err = '用户名不存在'
             return render_template('login.html',params=locals())
 
+
 @app.route('/logout')
 def logout():
     url = request.headers.get('Referer','/')
     resp = redirect(url)
     if 'account' in request.cookies:
-        account = request.cookies['account']
-        changeStatus(account)
         resp.delete_cookie('account')
     if 'account' in session:
         del session['account']
     return resp
 
-#关闭浏览器
-@app.route('/close')
-def userChange():
-    if 'account' in session:
-        account = request.session['account']
-        changeStatus(account) #用户离线
-
-#用户离线状态
-def changeStatus(account):
-    user = Users.query.filter_by(account=account).first()
-    user.status = 0
-    db.session.add(user)
-    db.session.commit()
-#用户上线状态
-def upStuatus(account):
-    user = Users.query.filter_by(account=account).first()
-    user.status = 1
-    db.session.add(user)
-    db.session.commit()
-
 # 任务路由视图
 # @task_bp.route("/risetask",methods=["POST",'GET'])
 @app.route("/risetask",methods=["POST",'GET'])
 def rise_task():
-    if 'account' not in session:
-        msg = '请先登录账号'
-        return render_template('login.html',params=locals())
+    if request.method=="GET":
+        return render_template("risetask.html")
     else:
-        if request.method=="GET":
-            return render_template("risetask.html")
-        else:
-            aa = datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')  # 时间节点
-            tip=request.form.get('tip') #任务类型
-            uid = session['account']
-            pmtime = aa     #任务发布时间
-            task_id = str(uid) + str(pmtime)  # 发布任务代码
-            # 任务详情　赏金　时间ｘ３　地点
-            title = request.form.get('title') #任务标题
-            content = request.form.get('text')# 任务详情
-            salary = request.form.get('salary')# 赏金
-            smtime = request.form.get('smtime')# 任务最迟开始时间
-            sptime = request.form.get('sptime')# 任务最迟结束时间
-            position = request.form.get('position')# 任务地点
-            status = '0'
-            try:
-                f = request.files['file']
-                if not (f and allowed_file(f.filename)):
-                    return jsonify({"error": 1001, "msg": "请检查上传的图片类型，仅限于png、PNG、jpg、JPG、bmp"})
-                bb = f.filename.split('.')[-1]
-                task_imgurl = 'static/images/' + uid +aa + '.' + bb
-                f.save(task_imgurl)
-            except:
-                task_imgurl = 'static/images/0.jpg'
+        tip=request.form.get('tip') #任务类型
+        uid = request.form.get('uid')#发布任务用户id
+        pmtime = request.form.get('pmtime')#任务发布时间
+        task_id = str(uid) + str(pmtime)  # 发布任务代码
+        # 任务详情　赏金　时间ｘ３　地点
+        title = request.form.get('title') #任务标题
+        content = request.form.get('text')# 任务详情
+        salary = request.form.get('salary')# 赏金
+        smtime = request.form.get('smtime')# 任务最迟开始时间
+        sptime = request.form.get('sptime')# 任务最迟结束时间
+        position = request.form.get('position')# 任务地点
+        try:
+            f = request.files['file']
+            if not (f and allowed_file(f.filename)):
+                return jsonify({"error": 1001, "msg": "请检查上传的图片类型，仅限于png、PNG、jpg、JPG、bmp"})
+            aa=datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')  # 时间节点
+            bb = f.filename.split('.')[-1]
+            task_imgurl = 'static/img/' + uid +aa + '.' + bb
+            f.save(task_imgurl)
+        except:
+            task_imgurl = 'static/img/0.jpg'
 
-            # ------------（任务id，任务类型，任务标题，发布者id，任务详情，赏金，发布时间，接受截止时间，任务截止时间，任务地点）
-            task = Tasks(task_id, tip, title, uid, content, salary, pmtime, smtime, sptime, position,task_imgurl,status)
-            db.session.add(task)  # session 事物会话　记录对象任务
-            db.session.commit()  # 数据提交
-            params = {'uid':uid,'task_imgurl':task_imgurl}
-            return render_template('/risetask_ok.html',params=params)
-        # if content and uid and pmtime and salary and smtime and sptime and position:
-        #     flash("任务发布成功，任务单号%s,点击跳转" % task_id)
-        #     return render_template('risetask.html')
-        # if not content and not uid and not pmtime and not salary and not smtime and not sptime and not position:
-        #     return render_template('risetask.html')
+        # ------------（任务id，任务类型，任务标题，发布者id，任务详情，赏金，发布时间，接受截止时间，任务截止时间，任务地点）
+        task = Tasks(task_id, tip, title, uid, content, salary, pmtime, smtime, sptime, position,task_imgurl)
+        db.session.add(task)  # session 事物会话　记录对象任务
+        db.session.commit()  # 数据提交
+        if content and uid and pmtime and salary and smtime and sptime and position:
+            flash("任务发布成功，任务单号%s,点击跳转" % task_id)
+            return render_template('risetask.html')
+        if not content and not uid and not pmtime and not salary and not smtime and not sptime and not position:
+            return render_template('risetask.html')
 
 #任务类
 class Tasks(db.Model):
     __tablename__ = 'tasks'  #指明表名
-    task_id= db.Column(db.String(50), primary_key=True)    #db.Column 真实存在的列
+    task_id= db.Column(db.String(20), primary_key=True)    #db.Column 真实存在的列
     tip = db.Column(db.String(20), nullable=False)
-    title = db.Column(db.String(40), nullable=False)
+    title = db.Column(db.String(20), nullable=False)
     uid= db.Column(db.String(40),nullable=False)      #定义字段
     content= db.Column(db.String(400),nullable=False)
     salary=db.Column(db.String(5),nullable=False)
@@ -237,12 +201,9 @@ class Tasks(db.Model):
     sptime= db.Column(db.String(20),nullable=False)
     position= db.Column(db.String(20),nullable=False)
     task_imgurl=db.Column(db.String(100),nullable=False)
-    status=db.Column(db.String(1),nullable=False)
-    re_id=db.Column(db.String(40),nullable=True)
 
 
-
-    def __init__(self,task_id, tip, title, uid, content, salary, pmtime, smtime, sptime, position,task_imgurl,status):
+    def __init__(self,task_id, tip, title, uid, content, salary, pmtime, smtime, sptime, position,task_imgurl):
         self.task_id=task_id
         self.tip = tip
         self.title=title
@@ -254,7 +215,6 @@ class Tasks(db.Model):
         self.sptime=sptime
         self.position=position
         self.task_imgurl=task_imgurl
-        self.status=status
 
 # 任务详情页跳转 task_id=20190112xxx
 @app.route("/task")
@@ -274,6 +234,15 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
+    # kw = request.args.get('kw')
+    # if not kw:
+    #     pass
+    #     # result = db.session.query(Tasks).filter().all()
+    # else:
+    #     pass
+    #     # result = db.session.query(Tasks).filter(Tasks.task_id=task_id).all()
+    #     result = db.session.query(Tasks).filter(Tasks.title.like('%kw%')).all()
+    #     result = db.session.query(Tasks).filter(Tasks.position.like('%kw%')).all()
     if 'account' in session:
         account = session['account']
     else:
@@ -281,27 +250,6 @@ def index():
             account = request.cookies['account']
         else:
             account = ''
-
-    kw = request.args.get('kw')
-    if not kw:
-        result_0 = db.session.query(Tasks).filter(Tasks.tip=='0').all()
-        result_1 = db.session.query(Tasks).filter(Tasks.tip=='1').all()
-        result_2 = db.session.query(Tasks).filter(Tasks.tip=='2').all()
-        result_3 = db.session.query(Tasks).filter(Tasks.tip=='3').all()
-        result = db.session.query(Tasks).filter().all()
-
-    else:
-        s = "%" + kw + '%'
-        #　按任务单号查询
-        # result = db.session.query(Tasks).filter(Tasks.task_id==kw).all()
-        # 按任务标题模糊查询
-        # result = db.session.query(Tasks).filter(Tasks.title.like(s)).all()
-        # 按任务地址模糊查询
-        # result = db.session.query(Tasks).filter(Tasks.position.like('%kw%')).all()
-        # 按任务详情模糊查询
-        result = db.session.query(Tasks).filter(Tasks.content.like(s)).all()
-        for i in result:
-            print(i.task_id, i.title)
     # if account:
     #     return render_template('index.html', result=result)
     # else:
